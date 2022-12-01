@@ -13,7 +13,6 @@ app.wsgi_app = ProxyFix(
 )
 
 users : List[Dict] = []
-DEFAULT_GENRES : List[str] = ['Rock', 'Electro', 'Metal']
 
 @app.route('/')
 @app.route('/player')
@@ -60,7 +59,6 @@ def set_hr():
     if hr != None:
         user['targethr'] = int(hr)
     return ''
-    
 
 @app.route('/get_next')
 def get_next_song():
@@ -70,11 +68,11 @@ def get_next_song():
     user = users[int(userid)]
     while True:
         if user['lasthr'] > user['targethr']:
-            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'] - 10, DEFAULT_GENRES), max = 3)[0]
+            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'] - 10, deezerapi.LOW_ENERGY_GENRES), max = 3)[0]
         elif user['lasthr'] < user['targethr']:
-            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'] + 10, DEFAULT_GENRES), max = 3)[0]
+            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'] + 10, deezerapi.HIGH_ENERGY_GENRES), max = 3)[0]
         else:
-            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'], DEFAULT_GENRES), max = 3)[0]
+            track = deezerapi.get_tracks_by_bpm_genre((user['curr_bpm'], deezerapi.DEFAULT_GENRES), max = 3)[0]
         if track not in user['recentplays']:
             break
     ti = deezerapi.track_info(str(track))

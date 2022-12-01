@@ -6,6 +6,9 @@ from typing import List, Dict, Tuple
 import requests, random
 
 API_URL = 'https://api.deezer.com/'
+DEFAULT_GENRES : List[str] = ['Rock', 'Electro', 'Pop']
+HIGH_ENERGY_GENRES = ['Dance', 'Pop', 'Rock', 'Metal', 'Electro']
+LOW_ENERGY_GENRES = ['Classical', 'Alternative']
 
 def search_tracks(q : str, next = None) -> List[Dict]:
     '''Performs a search on the Deezer API for songs matching the passed query'''

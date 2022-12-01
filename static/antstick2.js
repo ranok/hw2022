@@ -26,6 +26,8 @@ function parse_data(bytes) {
     var msgs = []
     for (i = 0; i < bytes.length; i++) {
         if (bytes[i] == 0xa4) {
+            if (bytes.length < i+3) 
+                break;
             var msg = { sync: bytes[i]};
             msg.len = bytes[i+1];
             msg.type = bytes[i+2];
@@ -43,13 +45,13 @@ function parse_data(bytes) {
 function get_hr(msg) {
     if (msg.type == 0x4E && !isNaN(parseInt(msg.data[8]))) {
         console.log("Got HR: " + msg.data[8]);
-        return msg.data[8];
+        if (msg.data[8] != 255 && msg.data[8] != 0)
+            return msg.data[8];
     }
     return -1;
 }
 
 var last_avg_hr = 0;
-
 // A function to read in a block of messages and average any received HRs, otherwise returns 0
 async function get_avg_hr(sd) {
     var hrs = [];
@@ -83,7 +85,7 @@ async function read_messages(sd) {
             const { done, value } = await reader.read();
             if (!done) {
                 msgs = parse_data(value);
-                console.log('Read message: ' + msgs);
+                //console.log('Read message: ' + msgs);
             } else {
                 console.log("Done!");
             }

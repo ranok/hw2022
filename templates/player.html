@@ -2,22 +2,46 @@
     <head>
         <title>Heart Beatz Bio-feedback DJ</title>
         <script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+        <script src="/static/antstick2.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
         <script>
+            var next_track = 0;
             function get_next() {
                 $.ajax("/get_next").done(function(data) {
-                    DZ.Event.subscribe('track_end', function(i) {
-                        DZ.player.playTracks([data]);
-                        window.setTimeout(get_next, 1000);
-                    });
+                    next_track = data;
                     console.log('Enqueuing: ' + data);
                 });
+                
+            }
+
+            var user_hrs = [];
+            function send_avg_hr() {
+                var usr_id = {{ userid }};
+                if (last_avg_hr != 0) {
+                    user_hrs.push(last_avg_hr);
+                    if (user_hrs.length >= 10) {
+                        avg = parseInt(user_hrs.reduce((a, b) => a + b, 0) / user_hrs.length);
+                        $.ajax("/hr/" + usr_id + "?hr=" + avg);
+                        user_hrs = [];
+                    }
+                }
+                window.setTimeout(send_avg_hr, 3000);
             }
 
             function send_targethr() {
                 $.ajax("/set_hr_target?hr=" + document.getElementById('targethr').value);
                 console.log('Setting target HR to: ' + document.getElementById('targethr').value);
             }
+
+            var port = null;
+            function ant_connect() {
+                get_serial_device().then(
+                    function(p) { port = p; enable_rx_scan_mode(p).then(
+                        function() { window.setTimeout(get_avg_hr, 2000, port); }
+                    ); });
+                send_avg_hr();
+            }
+        
         </script>
     </head>
     <body>
@@ -29,12 +53,16 @@
         <script>
             DZ.init({
                 appId  : '569602',
-                channelUrl : 'http://heartbeatz.media:5000/channel',
+                channelUrl : 'https://heartbeatz.media:5000/channel',
                 player: {
                     container: 'player',
                     width : 800,
                     height : 300,
-                    onload : function(){ get_next(); }
+                    onload : function(){ get_next(); DZ.Event.subscribe('track_end', function(i) {
+                        console.log('End track fired');
+                        DZ.player.playTracks([next_track]);
+                        window.setTimeout(get_next, 1000);
+                    });}
                 }
             });
         </script>
@@ -42,6 +70,7 @@
         <script>DZ.ready(function(sdk_opts) { DZ.player.playTracks([{{ start_track }}]); });</script>
         {% endif %}
         <div>
+            <button onclick="ant_connect(); return false;">Connect</button><button onclick="close_port(port); return false;">Close connection</button><br />
             <button onclick="DZ.player.seek(99); return false;">Next</button>
             <button onclick="DZ.player.play(); return false;">Play</button>
             <button onclick="DZ.player.pause(); return false;">Pause</button>
