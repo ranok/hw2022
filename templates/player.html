@@ -1,0 +1,53 @@
+<html>
+    <head>
+        <title>Heart Beatz Bio-feedback DJ</title>
+        <script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+        <script>
+            function get_next() {
+                $.ajax("/get_next").done(function(data) {
+                    DZ.Event.subscribe('track_end', function(i) {
+                        DZ.player.playTracks([data]);
+                        window.setTimeout(get_next, 1000);
+                    });
+                    console.log('Enqueuing: ' + data);
+                });
+            }
+
+            function send_targethr() {
+                $.ajax("/set_hr_target?hr=" + document.getElementById('targethr').value);
+                console.log('Setting target HR to: ' + document.getElementById('targethr').value);
+            }
+        </script>
+    </head>
+    <body>
+        {% if userid %}
+        <p>User ID: {{ userid }}</p>
+        {% endif %}
+        <div id="dz-root"></div>
+        <div id="player"></div>
+        <script>
+            DZ.init({
+                appId  : '569602',
+                channelUrl : 'http://heartbeatz.media:5000/channel',
+                player: {
+                    container: 'player',
+                    width : 800,
+                    height : 300,
+                    onload : function(){ get_next(); }
+                }
+            });
+        </script>
+        {% if start_track %}
+        <script>DZ.ready(function(sdk_opts) { DZ.player.playTracks([{{ start_track }}]); });</script>
+        {% endif %}
+        <div>
+            <button onclick="DZ.player.seek(99); return false;">Next</button>
+            <button onclick="DZ.player.play(); return false;">Play</button>
+            <button onclick="DZ.player.pause(); return false;">Pause</button>
+            <button onclick="get_next(); return false;">Enqueue</button><br />
+            <input type="text" id="targethr" value="60" /><button onclick="send_targethr(); return false;">Set target HR</button>
+            <a href="/clearcookie">Reset cookies</a>
+        </div>
+    </body>
+</html>
