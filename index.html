@@ -1,0 +1,19 @@
+<html>
+    <head>
+        <title>WebSerial Test</title>
+        <script src="antstick2.js"></script>
+    </head>
+    <body>
+        <p>hi</p>
+        <script>
+            port = null;
+            
+            function ant_connect() {
+                get_serial_device().then(
+                    function(p) { port = p; enable_rx_scan_mode(p).then(
+                        function() { window.setTimeout(get_avg_hr, 2000, port); }
+                    ); });
+            }
+        </script>
+        <button onclick="ant_connect(); return false;">Connect</button><button onclick="close_port(port); return false;">Close connection</button>
+    </body>
