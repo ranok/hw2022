@@ -1,6 +1,7 @@
 <html>
     <head>
         <title>Heart Beatz Bio-feedback DJ</title>
+        <link rel="stylesheet" href="/static/hb.css" />
         <script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
         <script src="/static/antstick2.js"></script>
         <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
@@ -8,7 +9,8 @@
             var next_track = 0;
             function get_next() {
                 $.ajax("/get_next").done(function(data) {
-                    next_track = data;
+                    if (data != '')
+                        next_track = data;
                     console.log('Enqueuing: ' + data);
                 });
                 
@@ -28,55 +30,75 @@
                 window.setTimeout(send_avg_hr, 3000);
             }
 
-            function send_targethr() {
-                $.ajax("/set_hr_target?hr=" + document.getElementById('targethr').value);
-                console.log('Setting target HR to: ' + document.getElementById('targethr').value);
+            function send_targethr(fieldname) {
+                $.ajax("/set_hr_target?hr=" + document.getElementById(fieldname).value);
+                console.log('Setting target HR to: ' + document.getElementById(fieldname).value);
+                document.getElementById("inittargethr").style.display = "none";
+                if (port != null && fieldname == 'inittargethr') {
+                    document.getElementById('targether').value = document.getElementById(fieldname).value
+                    document.getElementById("initiate").style.display = "none";
+                    document.getElementById("hbcontainer").style.display = "block";
+                    DZ.player.play();
+                }
             }
 
             var port = null;
             function ant_connect() {
                 get_serial_device().then(
-                    function(p) { port = p; enable_rx_scan_mode(p).then(
-                        function() { window.setTimeout(get_avg_hr, 2000, port); }
-                    ); });
-                send_avg_hr();
+                    function(p) { 
+                        port = p; 
+                        if (port != null) {
+                            document.getElementById("initconnect").style.display = "none";
+                            enable_rx_scan_mode(p).then(
+                                function() { window.setTimeout(get_avg_hr, 2000, port); send_avg_hr(); }
+                            );
+                        }
+                 });
             }
         
         </script>
     </head>
     <body>
+        <div class="backgrounddiv"></div>
+        <div id="heart"></div>
         {% if userid %}
         <p>User ID: {{ userid }}</p>
         {% endif %}
-        <div id="dz-root"></div>
-        <div id="player"></div>
-        <script>
-            DZ.init({
-                appId  : '569602',
-                channelUrl : 'https://heartbeatz.media:5000/channel',
-                player: {
-                    container: 'player',
-                    width : 800,
-                    height : 300,
-                    onload : function(){ get_next(); DZ.Event.subscribe('track_end', function(i) {
-                        console.log('End track fired');
-                        DZ.player.playTracks([next_track]);
-                        window.setTimeout(get_next, 1000);
-                    });}
-                }
-            });
-        </script>
-        {% if start_track %}
-        <script>DZ.ready(function(sdk_opts) { DZ.player.playTracks([{{ start_track }}]); });</script>
-        {% endif %}
-        <div>
-            <button onclick="ant_connect(); return false;">Connect</button><button onclick="close_port(port); return false;">Close connection</button><br />
-            <button onclick="DZ.player.seek(99); return false;">Next</button>
-            <button onclick="DZ.player.play(); return false;">Play</button>
-            <button onclick="DZ.player.pause(); return false;">Pause</button>
-            <button onclick="get_next(); return false;">Enqueue</button><br />
-            <input type="text" id="targethr" value="60" /><button onclick="send_targethr(); return false;">Set target HR</button>
-            <a href="/clearcookie">Reset cookies</a>
+        <div id="initiate">
+            <p>Welcome to Heart Beatz! Please connect your ANT+ HR monitor to the service and set your target HR to get started!</p>
+            <button id="initconnect" onclick="ant_connect(); return false;">Connect</button><button onclick="close_port(port); return false;">Close connection</button>
+            <input type="text" id="inittargethr" value="60" size="3" /><button onclick="send_targethr('inittargethr'); return false;">Set target HR</button>
+        </div>
+        <div id="hbcontainer">
+            <div id="dz-root"></div>
+            <div id="player" style="height: 90px; width: 600px;"></div>
+            <script>
+                DZ.init({
+                    appId  : '569602',
+                    channelUrl : 'https://heartbeatz.media:5000/channel',
+                    player: {
+                        container: 'player',
+                        //width : 800,
+                        //height : 300,
+                        onload : function(){ get_next(); DZ.Event.subscribe('track_end', function(i) {
+                            console.log('End track fired');
+                            DZ.player.playTracks([next_track]);
+                            window.setTimeout(get_next, 1000);
+                        });}
+                    }
+                });
+            </script>
+            {% if start_track %}
+            <script>DZ.ready(function(sdk_opts) { DZ.player.playTracks([{{ start_track }}], false); });</script>
+            {% endif %}
+            <div id="controls">
+                <button onclick="DZ.player.seek(99); return false;">Next</button>
+                <button onclick="DZ.player.play(); return false;">Play</button>
+                <button onclick="DZ.player.pause(); return false;">Pause</button>
+                <button onclick="get_next(); return false;">Enqueue</button><br />
+                <input type="text" id="targethr" value="60" size="3" /><button onclick="send_targethr('targethr'); return false;">Set target HR</button>
+                <!--<a href="/clearcookie">Reset cookies</a>-->
+            </div>
         </div>
     </body>
 </html>

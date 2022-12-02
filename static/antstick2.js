@@ -10,10 +10,11 @@ const toHexString = (bytes) =>
 // Function to prompt the user for a serial device matching the ANT USBStick2 vendor ID if it's plugged in
 async function get_serial_device() {
     const usbVendorId = 0x0FCF;
+    var p = null;
     try {
-        port = await navigator.serial.requestPort({filters: [{ usbVendorId }]});
-        await port.open({ baudRate: 115200});
-        return port;
+        p = await navigator.serial.requestPort({filters: [{ usbVendorId }]});
+        await p.open({ baudRate: 115200});
+        return p;
     } catch (error) {
         console.log('Unable to get port!');
         console.log(error);

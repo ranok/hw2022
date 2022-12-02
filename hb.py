@@ -12,6 +12,10 @@ app.wsgi_app = ProxyFix(
     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
 )
 
+@app.route('/favicon.ico')
+def favico():
+    return flask.redirect(flask.url_for('static', filename='favicon.ico'))
+
 users : List[Dict] = []
 
 @app.route('/')
@@ -22,7 +26,7 @@ def player():
         resp.set_cookie('userid', str(len(users)))
         users.append({'lasthr': 60, 'targethr': 60, 'curr_bpm': 124, 'recentplays': []})
         return resp
-    return flask.render_template('player.html', userid=request.cookies.get('userid'))
+    return flask.render_template('player.html', userid=request.cookies.get('userid'), start_track = '70266756')
 
 @app.route('/tos')
 def tos():
@@ -63,7 +67,7 @@ def set_hr():
 @app.route('/get_next')
 def get_next_song():
     userid = request.cookies.get('userid')
-    if userid is None:
+    if userid is None or len(users) == 0:
         return ''
     user = users[int(userid)]
     while True:
