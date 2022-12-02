@@ -22,11 +22,11 @@ users : List[Dict] = []
 @app.route('/player')
 def player():
     if request.cookies.get('userid') is None:
-        resp = flask.make_response(flask.render_template('player.html', userid=str(len(users)), start_track = '70266756'))
+        resp = flask.make_response(flask.render_template('player.html', userid=str(len(users))))
         resp.set_cookie('userid', str(len(users)))
         users.append({'lasthr': 60, 'targethr': 60, 'curr_bpm': 124, 'recentplays': []})
         return resp
-    return flask.render_template('player.html', userid=request.cookies.get('userid'), start_track = '70266756')
+    return flask.render_template('player.html', userid=request.cookies.get('userid'))
 
 @app.route('/tos')
 def tos():

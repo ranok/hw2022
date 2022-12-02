@@ -30,15 +30,38 @@
                 window.setTimeout(send_avg_hr, 3000);
             }
 
-            function send_targethr(fieldname) {
-                $.ajax("/set_hr_target?hr=" + document.getElementById(fieldname).value);
-                console.log('Setting target HR to: ' + document.getElementById(fieldname).value);
-                document.getElementById("inittargethr").style.display = "none";
-                if (port != null && fieldname == 'inittargethr') {
-                    document.getElementById('targether').value = document.getElementById(fieldname).value
+            var dismiss = false;
+            var first_track = 0;
+            function send_targethr() {
+                $.ajax("/set_hr_target?hr=" + document.getElementById("targethr").value);
+                targethr = document.getElementById("targethr").value;
+                console.log('Setting target HR to: ' + document.getElementById("targethr").value);
+                if (first_track == 0) {
+                    switch(targethr) {
+                        case "55":
+                            first_track = "62743414";
+                            break;
+                        case "70":
+                            first_track = "684746592";
+                            break;
+                        case "85":
+                            first_track = "70266756";
+                            break;
+                        case "100":
+                            first_track = "2220202";
+                            break;
+                        default:
+                            first_track = "1437047692";
+                            break;
+                    }
+                    console.log('First track: ' + first_track);
+                    DZ.ready(function(sdk_opts) { DZ.player.playTracks([first_track], true); });
+                }
+                if (/*port != null && */!dismiss) {
                     document.getElementById("initiate").style.display = "none";
                     document.getElementById("hbcontainer").style.display = "block";
-                    DZ.player.play();
+                    //DZ.player.play();
+                    dismiss = true;
                 }
             }
 
@@ -55,19 +78,44 @@
                         }
                  });
             }
-        
+            
+            // Get the modal
+            var modal;
+            // Get the <span> element that closes the modal
+            var cspan;
+            function select_targethr() {
+                modal = document.getElementById("modalbox");
+                modal.style.display = "block";
+                cspan = document.getElementsByClassName("close")[0];
+                cspan.onclick = function() {
+                    modal.style.display = "none";
+                };
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                    }
+                };
+            }
         </script>
     </head>
     <body>
         <div class="backgrounddiv"></div>
         <div id="heart"></div>
-        {% if userid %}
-        <p>User ID: {{ userid }}</p>
-        {% endif %}
         <div id="initiate">
             <p>Welcome to Heart Beatz! Please connect your ANT+ HR monitor to the service and set your target HR to get started!</p>
-            <button id="initconnect" onclick="ant_connect(); return false;">Connect</button><button onclick="close_port(port); return false;">Close connection</button>
-            <input type="text" id="inittargethr" value="60" size="3" /><button onclick="send_targethr('inittargethr'); return false;">Set target HR</button>
+            <button id="initconnect" class="button-53" onclick="ant_connect(); return false;">Connect to HR</button><br /><br/>
+            <button class="button-53" onclick="select_targethr(); return false;">Set target HR</button>
+        </div>
+        <div class="modal" id="modalbox">
+            <div class="modalcontent">
+                <span class="close">&times;</span>
+                <p>Select your activity to set a target heartrate:</p>
+                <button class="roundbutton" onclick="document.getElementById('targethr').value = '55'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/sleeping.png" /><br />Sleeping / Chill (55BPM)</button>
+                <button class="roundbutton" onclick="document.getElementById('targethr').value = '70'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/hacking.png" /><br />Hacking (70BPM></button><br /><br />
+                <button class="roundbutton" onclick="document.getElementById('targethr').value = '85'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/dancing.png" /><br />Dancing (85BPM)</button>
+                <button class="roundbutton" onclick="document.getElementById('targethr').value = '100'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/running.png" /><br />Running / Exercise (100BPM)</button><br /><br />
+                <input type="text" id="targethr" value="60" size="3" />&nbsp;&nbsp;<button class="roundbutton">Custom HR target</button>
+            </div>
         </div>
         <div id="hbcontainer">
             <div id="dz-root"></div>
@@ -88,17 +136,16 @@
                     }
                 });
             </script>
-            {% if start_track %}
-            <script>DZ.ready(function(sdk_opts) { DZ.player.playTracks([{{ start_track }}], false); });</script>
-            {% endif %}
-            <div id="controls">
-                <button onclick="DZ.player.seek(99); return false;">Next</button>
-                <button onclick="DZ.player.play(); return false;">Play</button>
-                <button onclick="DZ.player.pause(); return false;">Pause</button>
-                <button onclick="get_next(); return false;">Enqueue</button><br />
-                <input type="text" id="targethr" value="60" size="3" /><button onclick="send_targethr('targethr'); return false;">Set target HR</button>
+            <div id="controls" style="padding-top: 20px;">
+                <button class="button-53" onclick="DZ.player.seek(99); return false;">Next</button>&nbsp;&nbsp;
+                <button class="button-53" onclick="DZ.player.play(); return false;">Play</button>&nbsp;&nbsp;
+                <button class="button-53" onclick="DZ.player.pause(); return false;">Pause</button>&nbsp;&nbsp;
+                <!--<button class="button-53" onclick="get_next(); return false;">Enqueue</button><br />
+                <input type="text" id="targethr" value="60" size="3" />--><button class="button-53" onclick="select_targethr(); return false;">Set target HR</button>
+                <br /><button class="button-53" onclick="close_port(port); return false;">Disconnect from HR</button>
                 <!--<a href="/clearcookie">Reset cookies</a>-->
             </div>
         </div>
+        <div style="bottom: 5px; left: 0; position: fixed; text-align: center; width: 100%; font-size: x-small; color: gray;">&copy; 2022 Jacob Torrey / Thinkst &dash; A 2022 Hackweek project</div>
     </body>
 </html>
