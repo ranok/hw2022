@@ -57,7 +57,7 @@
                     console.log('First track: ' + first_track);
                     DZ.ready(function(sdk_opts) { DZ.player.playTracks([first_track], true); });
                 }
-                if (/*port != null && */!dismiss) {
+                if (port != null && !dismiss) {
                     document.getElementById("initiate").style.display = "none";
                     document.getElementById("hbcontainer").style.display = "block";
                     //DZ.player.play();
@@ -111,7 +111,7 @@
                 <span class="close">&times;</span>
                 <p>Select your activity to set a target heartrate:</p>
                 <button class="roundbutton" onclick="document.getElementById('targethr').value = '55'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/sleeping.png" /><br />Sleeping / Chill (55BPM)</button>
-                <button class="roundbutton" onclick="document.getElementById('targethr').value = '70'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/hacking.png" /><br />Hacking (70BPM></button><br /><br />
+                <button class="roundbutton" onclick="document.getElementById('targethr').value = '70'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/hacking.png" /><br />Hacking (70BPM)</button><br /><br />
                 <button class="roundbutton" onclick="document.getElementById('targethr').value = '85'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/dancing.png" /><br />Dancing (85BPM)</button>
                 <button class="roundbutton" onclick="document.getElementById('targethr').value = '100'; modal.style.display = 'none'; send_targethr(); return false;"><img class="ico" src="/static/running.png" /><br />Running / Exercise (100BPM)</button><br /><br />
                 <input type="text" id="targethr" value="60" size="3" />&nbsp;&nbsp;<button class="roundbutton">Custom HR target</button>
